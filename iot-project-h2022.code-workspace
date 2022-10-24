@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "temp-sensor"
+		},
+		{
+			"path": "eeprom-config"
 		}
 	],
 	"settings": {}
