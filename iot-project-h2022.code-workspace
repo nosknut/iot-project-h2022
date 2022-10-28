@@ -8,6 +8,9 @@
 		},
 		{
 			"path": "eeprom-config"
+		},
+		{
+			"path": "espidf-aws-iot"
 		}
 	],
 	"settings": {}
