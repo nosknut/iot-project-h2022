@@ -1,3 +1,5 @@
+#include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
+
 /*
  * Copyright 2010-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  * Additions Copyright 2016 Espressif Systems (Shanghai) PTE LTD
@@ -116,14 +118,16 @@ static void event_handler(void* handler_args, esp_event_base_t base, int32_t id,
     if(base == WIFI_EVENT) {
         switch(id) {
         case WIFI_EVENT_STA_START:
-            esp_wifi_connect();
+            // esp_wifi_connect();
+            setupWifi();
             break;
         case WIFI_EVENT_STA_CONNECTED:
             break;
         case WIFI_EVENT_STA_DISCONNECTED:
             /* This is a workaround as ESP32 WiFi libs don't currently
             auto-reassociate. */
-            esp_wifi_connect();
+            // esp_wifi_connect();
+            setupWifi();
             xEventGroupClearBits(wifi_event_group, CONNECTED_BIT);
             break;
         default:
@@ -308,6 +312,40 @@ void aws_iot_task(void *param) {
     abort();
 }
 
+void setupWifi()
+{
+  // WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
+  // it is a good practice to make sure your code sets wifi mode how you want it.
+
+  // WiFiManager, Local intialization. Once its business is done, there is no need to keep it around
+  WiFiManager wm;
+
+  // reset settings - wipe stored credentials for testing
+  // these are stored by the esp library
+  // wm.resetSettings();
+
+  // Automatically connect using saved credentials,
+  // if connection fails, it starts an access point with the specified name ( "AutoConnectAP"),
+  // if empty will auto generate SSID, if password is blank it will be anonymous AP (wm.autoConnect())
+  // then goes into a blocking loop awaiting configuration and will return success result
+
+  bool res;
+  // res = wm.autoConnect(); // auto generated AP name from chipid
+  // res = wm.autoConnect("AutoConnectAP"); // anonymous ap
+  res = wm.autoConnect("AutoConnectAP"); // password protected ap
+
+  if (!res)
+  {
+    Serial.println("Failed to connect");
+    ESP.restart();
+  }
+  else
+  {
+    // if you get here you have connected to the WiFi
+    Serial.println("connected...yeey :)");
+  }
+}
+
 static void initialise_wifi(void)
 {
     wifi_event_group = xEventGroupCreate();
@@ -327,19 +365,20 @@ static void initialise_wifi(void)
                                                         NULL,
                                                         NULL));
 
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
-    ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
-    wifi_config_t wifi_config = {
-        .sta = {
-            .ssid = EXAMPLE_WIFI_SSID,
-            .password = EXAMPLE_WIFI_PASS,
-        },
-    };
-    ESP_LOGI(TAG, "Setting WiFi configuration SSID %s...", wifi_config.sta.ssid);
-    ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_STA) );
-    ESP_ERROR_CHECK( esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
-    ESP_ERROR_CHECK( esp_wifi_start() );
+    // wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    // ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
+    // ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
+    // wifi_config_t wifi_config = {
+    //     .sta = {
+    //         .ssid = EXAMPLE_WIFI_SSID,
+    //         .password = EXAMPLE_WIFI_PASS,
+    //     },
+    // };
+    // ESP_LOGI(TAG, "Setting WiFi configuration SSID %s...", wifi_config.sta.ssid);
+    setupWifi();
+    // ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_STA) );
+    // ESP_ERROR_CHECK( esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
+    // ESP_ERROR_CHECK( esp_wifi_start() );
 }
 
 
