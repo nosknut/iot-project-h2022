@@ -29,7 +29,7 @@ char wm_pw[40];      // Put here your Wi-Fi password
 /****************************************
  * UBIDOTS PUBLISH CODE
  ****************************************/
-const char *UBIDOTS_TOKEN = "BBFF-boQsUTaILq6F7dLhQfThgBnG8g7k42";  // Put here your Ubidots TOKEN (Karl: BBFF-33AqonsLEHN5ujXN3N1q2qtcIqBN0K)
+const char *UBIDOTS_TOKEN = "";  // Put here your Ubidots TOKEN 
 const char *DEVICE_LABEL = "Test";   // Put here your Device label to which data  will be published
 const char *VARIABLE_LABEL = "Temp"; // Put here your Variable label to which data  will be published
 
