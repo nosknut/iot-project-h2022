@@ -200,7 +200,7 @@ void setup() {
   int pw_len = wifiManager.getWiFiPass().length() + 1;
   wifiManager.getWiFiPass().toCharArray(wm_ssid, pw_len);
   int ssid_len = wifiManager.getWiFiSSID().length() + 1;
-  wifiManager.getWiFiPass().toCharArray(wm_pw, ssid_len);
+  wifiManager.getWiFiSSID().toCharArray(wm_pw, ssid_len);
 
   Serial.println("\tyour_pw : " + String(wm_ssid));
   Serial.println("\tyour_ssid : " +  String(wm_pw));
