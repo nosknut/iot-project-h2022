@@ -1,6 +1,9 @@
 # Based on the following PlatformIO espressif32 example code
 https://github.com/platformio/platform-espressif32/tree/develop/examples/espidf-aws-iot
 
+## Navigation issues with menuconfig
+https://github.com/platformio/platform-espressif32/issues/423
+
 How to build PlatformIO based project
 =====================================
 
