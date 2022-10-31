@@ -1,11 +1,18 @@
 #include <FS.h>                   //this needs to be first, or it all crashes and burns...
 #include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
+#include <arduino.h>
+
+// ubidots
+#include "UbidotsEsp32Mqtt.h"
+#include <Wire.h>
+#include <SPI.h>
 
 #ifdef ESP32
   #include <SPIFFS.h>
 #endif
 
 #include <ArduinoJson.h>          //https://github.com/bblanchon/ArduinoJson
+
 
 //define your default values here, if there are different values in config.json, they are overwritten.
 char mqtt_server[40];
@@ -15,10 +22,70 @@ char api_token[34] = "YOUR_API_TOKEN";
 //flag for saving data
 bool shouldSaveConfig = false;
 
-//callback notifying us of the need to save config
+// ssid/pw from WM
+char wm_ssid[40];      // Put here your Wi-Fi SSID
+char wm_pw[40];      // Put here your Wi-Fi password
+
+/****************************************
+ * UBIDOTS PUBLISH CODE
+ ****************************************/
+const char *UBIDOTS_TOKEN = "BBFF-boQsUTaILq6F7dLhQfThgBnG8g7k42";  // Put here your Ubidots TOKEN (Karl: BBFF-33AqonsLEHN5ujXN3N1q2qtcIqBN0K)
+const char *DEVICE_LABEL = "Test";   // Put here your Device label to which data  will be published
+const char *VARIABLE_LABEL = "Temp"; // Put here your Variable label to which data  will be published
+
+const int PUBLISH_FREQUENCY = 5000; // Update rate in milliseconds 
+
+unsigned long timer;
+uint8_t analogPin = 34; // Pin used to read data from GPIO34 ADC_CH6.
+int tempPin = 34;
+
+const int temp1_pin = 12;
+
+int temp;
+float volts;
+float tempC;
+float temps[10];
+
+Ubidots ubidots(UBIDOTS_TOKEN);
+
+
+/****************************************
+ * Auxiliar Functions
+ ****************************************/
+
+// callback notifying us of the need to save config
 void saveConfigCallback () {
   Serial.println("Should save config");
   shouldSaveConfig = true;
+}
+
+// ubidots callback
+void callback(char *topic, byte *payload, unsigned int length)
+{
+  Serial.print("Message arrived [");
+  Serial.print(topic);
+  Serial.print("] ");
+  for (int i = 0; i < length; i++)
+  {
+    Serial.print((char)payload[i]);
+  }
+  Serial.println();
+}
+
+float getTemp(int pin) {
+  digitalWrite(pin, HIGH);
+  for (int i = 0; i < 10; i++) {
+    temp = analogRead(tempPin);
+    volts = temp / 1024.0;
+    tempC = (volts - 0.5) * 100;
+    temps[i] = tempC;
+  }
+  digitalWrite(pin, LOW);
+  float sum = 0;
+  for (int i = 0; i < 10; i++) {
+    sum += temps[i];
+  }
+  return sum / 10;
 }
 
 void setup() {
@@ -26,8 +93,12 @@ void setup() {
   Serial.begin(115200);
   Serial.println();
 
+  // ESP32 PINS
+  pinMode(temp1_pin, OUTPUT);
+  digitalWrite(temp1_pin, LOW);
+
   //clean FS, for testing
-  //SPIFFS.format();
+  SPIFFS.format();
 
   //read configuration from FS json
   Serial.println("mounting FS...");
@@ -58,7 +129,6 @@ void setup() {
         if (json.success()) {
 #endif
           Serial.println("\nparsed json");
-          strcpy(mqtt_server, json["mqtt_server"]);
           strcpy(mqtt_port, json["mqtt_port"]);
           strcpy(api_token, json["api_token"]);
         } else {
@@ -75,9 +145,8 @@ void setup() {
   // The extra parameters to be configured (can be either global or just in the setup)
   // After connecting, parameter.getValue() will get you the configured value
   // id/name placeholder/prompt default length
-  WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 40);
-  WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 6);
-  WiFiManagerParameter custom_api_token("apikey", "API token", api_token, 32);
+  WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 40);
+  WiFiManagerParameter custom_api_token("apikey", "API token", api_token, 40);
 
   //WiFiManager
   //Local intialization. Once its business is done, there is no need to keep it around
@@ -86,16 +155,12 @@ void setup() {
   //set config save notify callback
   wifiManager.setSaveConfigCallback(saveConfigCallback);
 
-  //set static ip
-  wifiManager.setSTAStaticIPConfig(IPAddress(10, 0, 1, 99), IPAddress(10, 0, 1, 1), IPAddress(255, 255, 255, 0));
-
-  //add all your parameters here
-  wifiManager.addParameter(&custom_mqtt_server);
+  //ADD ALL YOUR PARAMETERS HERE
   wifiManager.addParameter(&custom_mqtt_port);
   wifiManager.addParameter(&custom_api_token);
 
   //reset settings - for testing
-  //wifiManager.resetSettings();
+  wifiManager.resetSettings();
 
   //set minimu quality of signal so it ignores AP's under that quality
   //defaults to 8%
@@ -108,9 +173,9 @@ void setup() {
 
   //fetches ssid and pass and tries to connect
   //if it does not connect it starts an access point with the specified name
-  //here  "AutoConnectAP"
+  //here  "ESP32_Temp"
   //and goes into a blocking loop awaiting configuration
-  if (!wifiManager.autoConnect("AutoConnectAP", "password")) {
+  if (!wifiManager.autoConnect("ESP32_Temp", "password")) {
     Serial.println("failed to connect and hit timeout");
     delay(3000);
     //reset and try again, or maybe put it to deep sleep
@@ -119,16 +184,26 @@ void setup() {
   }
 
   //if you get here you have connected to the WiFi
-  Serial.println("connected...yeey :)");
+  Serial.println("device has connected to your wifi...yeey :)");
 
-  //read updated parameters
-  strcpy(mqtt_server, custom_mqtt_server.getValue());
+  //read updated CUSTOM parameters
   strcpy(mqtt_port, custom_mqtt_port.getValue());
   strcpy(api_token, custom_api_token.getValue());
   Serial.println("The values in the file are: ");
-  Serial.println("\tmqtt_server : " + String(mqtt_server));
+  Serial.println("\tubidots_token : " + String(mqtt_server));
   Serial.println("\tmqtt_port : " + String(mqtt_port));
   Serial.println("\tapi_token : " + String(api_token));
+
+  // from line 436,439 in WifiManager.h
+  // helper to get saved password and ssid, if persistent get stored, else get current if connected
+  // converting ssid/pw String to Char for UBIDOTS connect
+  int pw_len = wifiManager.getWiFiPass().length() + 1;
+  wifiManager.getWiFiPass().toCharArray(wm_ssid, pw_len);
+  int ssid_len = wifiManager.getWiFiSSID().length() + 1;
+  wifiManager.getWiFiPass().toCharArray(wm_pw, ssid_len);
+
+  Serial.println("\tyour_pw : " + String(wm_ssid));
+  Serial.println("\tyour_ssid : " +  String(wm_pw));
 
   //save the custom parameters to FS
   if (shouldSaveConfig) {
@@ -139,7 +214,6 @@ void setup() {
     DynamicJsonBuffer jsonBuffer;
     JsonObject& json = jsonBuffer.createObject();
 #endif
-    json["mqtt_server"] = mqtt_server;
     json["mqtt_port"] = mqtt_port;
     json["api_token"] = api_token;
 
@@ -164,6 +238,22 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  if (!ubidots.connected())
+  {
+    const char *WIFI_SSID = wm_ssid;
+    const char *WIFI_PASS = wm_pw;
+    ubidots.connectToWifi(WIFI_SSID, WIFI_PASS);
+    ubidots.setCallback(callback);
+    ubidots.setup();
+    ubidots.reconnect();
 
+  timer = millis();
+  }
+    if (millis() - timer > PUBLISH_FREQUENCY) // triggers the routine every 5 seconds
+  {
+    ubidots.add("temperature1", getTemp(temp1_pin));
+    ubidots.publish(DEVICE_LABEL);
+    timer = millis();
+  }
+  ubidots.loop();
 }
