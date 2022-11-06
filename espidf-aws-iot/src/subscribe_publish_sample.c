@@ -181,7 +181,7 @@ void aws_iot_task(void *param) {
     IoT_Client_Connect_Params connectParams = iotClientConnectParamsDefault;
 
     IoT_Publish_Message_Params paramsQOS0;
-    IoT_Publish_Message_Params paramsQOS1;
+    // IoT_Publish_Message_Params paramsQOS1;
 
     ESP_LOGI(TAG, "AWS IoT SDK Version %d.%d.%d-%s", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH, VERSION_TAG);
 
@@ -276,9 +276,9 @@ void aws_iot_task(void *param) {
     paramsQOS0.payload = (void *) cPayload;
     paramsQOS0.isRetained = 0;
 
-    paramsQOS1.qos = QOS1;
-    paramsQOS1.payload = (void *) cPayload;
-    paramsQOS1.isRetained = 0;
+    // paramsQOS1.qos = QOS1;
+    // paramsQOS1.payload = (void *) cPayload;
+    // paramsQOS1.isRetained = 0;
 
     while((NETWORK_ATTEMPTING_RECONNECT == rc || NETWORK_RECONNECTED == rc || SUCCESS == rc)) {
 
