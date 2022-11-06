@@ -1,6 +1,6 @@
+#include <arduino.h>
 #include <FS.h>                   //this needs to be first, or it all crashes and burns...
 #include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
-#include <arduino.h>
 
 // ubidots
 #include "UbidotsEsp32Mqtt.h"
@@ -12,7 +12,6 @@
 #endif
 
 #include <ArduinoJson.h>          //https://github.com/bblanchon/ArduinoJson
-
 
 //define your default values here, if there are different values in config.json, they are overwritten.
 char mqtt_server[40];
@@ -88,6 +87,7 @@ float getTemp(int pin) {
   return sum / 10;
 }
 
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
@@ -98,7 +98,7 @@ void setup() {
   digitalWrite(temp1_pin, LOW);
 
   //clean FS, for testing
-  SPIFFS.format();
+ // SPIFFS.format();
 
   //read configuration from FS json
   Serial.println("mounting FS...");
@@ -160,21 +160,16 @@ void setup() {
   wifiManager.addParameter(&custom_api_token);
 
   //reset settings - for testing
-  wifiManager.resetSettings();
+  //wifiManager.resetSettings();
 
   //set minimu quality of signal so it ignores AP's under that quality
   //defaults to 8%
-  //wifiManager.setMinimumSignalQuality();
+  wifiManager.setMinimumSignalQuality();
 
   //sets timeout until configuration portal gets turned off
-  //useful to make it all retry or go to sleep
-  //in seconds
-  //wifiManager.setTimeout(120);
+  wifiManager.setTimeout(180);
 
-  //fetches ssid and pass and tries to connect
-  //if it does not connect it starts an access point with the specified name
-  //here  "ESP32_Temp"
-  //and goes into a blocking loop awaiting configuration
+  //fetches ssid and pass and tries to connect if not connected starts AP
   if (!wifiManager.autoConnect("ESP32_Temp", "password")) {
     Serial.println("failed to connect and hit timeout");
     delay(3000);
@@ -196,14 +191,14 @@ void setup() {
 
   // from line 436,439 in WifiManager.h
   // helper to get saved password and ssid, if persistent get stored, else get current if connected
-  // converting ssid/pw String to Char for UBIDOTS connect
-  int pw_len = wifiManager.getWiFiPass().length() + 1;
-  wifiManager.getWiFiPass().toCharArray(wm_ssid, pw_len);
+  // converting ssid/pw String to Char for UBIDOTS connec
   int ssid_len = wifiManager.getWiFiSSID().length() + 1;
-  wifiManager.getWiFiSSID().toCharArray(wm_pw, ssid_len);
+  wifiManager.getWiFiSSID().toCharArray(wm_ssid, ssid_len);
+  int pw_len = wifiManager.getWiFiPass().length() + 1;
+  wifiManager.getWiFiPass().toCharArray(wm_pw, pw_len);
 
-  Serial.println("\tyour_pw : " + String(wm_ssid));
-  Serial.println("\tyour_ssid : " +  String(wm_pw));
+  Serial.println("\tyour_ssid : " +  String(wm_ssid));
+  Serial.println("\tyour_pw : " + String(wm_pw));
 
   //save the custom parameters to FS
   if (shouldSaveConfig) {
@@ -230,24 +225,29 @@ void setup() {
     json.printTo(configFile);
 #endif
     configFile.close();
-    //end save
   }
+  // end save
 
   Serial.println("local ip");
   Serial.println(WiFi.localIP());
+
+  const char *WIFI_SSID = wm_ssid;
+  const char *WIFI_PASS = wm_pw;
+
+  // connects to ubidots
+  ubidots.connectToWifi(WIFI_SSID, WIFI_PASS);
+  ubidots.setCallback(callback);
+  ubidots.setup();
+  ubidots.reconnect();
 }
+
+
 
 void loop() {
   if (!ubidots.connected())
-  {
-    const char *WIFI_SSID = wm_ssid;
-    const char *WIFI_PASS = wm_pw;
-    ubidots.connectToWifi(WIFI_SSID, WIFI_PASS);
-    ubidots.setCallback(callback);
-    ubidots.setup();
+  { 
+    Serial.println("reconnect U");
     ubidots.reconnect();
-
-  timer = millis();
   }
     if (millis() - timer > PUBLISH_FREQUENCY) // triggers the routine every 5 seconds
   {
