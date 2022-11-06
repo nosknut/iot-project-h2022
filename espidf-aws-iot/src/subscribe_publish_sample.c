@@ -292,17 +292,18 @@ void aws_iot_task(void *param) {
         ESP_LOGI(TAG, "Stack remaining for task '%s' is %d bytes", pcTaskGetTaskName(NULL), uxTaskGetStackHighWaterMark(NULL));
         vTaskDelay(1000 / portTICK_RATE_MS);
 
-        sprintf(cPayload, "{\"temperature\": %d, \"qos\": 0}", i++);
+        sprintf(cPayload, "{\"temperature\": %d}", i++);
         paramsQOS0.payloadLen = strlen(cPayload);
         rc = aws_iot_mqtt_publish(&client, TOPIC, TOPIC_LEN, &paramsQOS0);
-
-        sprintf(cPayload, "{\"temperature\": %d, \"qos\": 1}", i++);
-        paramsQOS1.payloadLen = strlen(cPayload);
-        rc = aws_iot_mqtt_publish(&client, TOPIC, TOPIC_LEN, &paramsQOS1);
-        if (rc == MQTT_REQUEST_TIMEOUT_ERROR) {
-            ESP_LOGW(TAG, "QOS1 publish ack not received.");
-            rc = SUCCESS;
-        }
+        
+        // QOS1
+        // sprintf(cPayload, "{\"temperature\": %d}", i++);
+        // paramsQOS1.payloadLen = strlen(cPayload);
+        // rc = aws_iot_mqtt_publish(&client, TOPIC, TOPIC_LEN, &paramsQOS1);
+        // if (rc == MQTT_REQUEST_TIMEOUT_ERROR) {
+        //     ESP_LOGW(TAG, "QOS1 publish ack not received.");
+        //     rc = SUCCESS;
+        // }
     }
 
     ESP_LOGE(TAG, "An error occurred in the main loop.");
