@@ -1,64 +1,45 @@
-#include <arduino.h>
-#include <FS.h>                   //this needs to be first, or it all crashes and burns...
-#include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
-
-// ubidots
-#include "UbidotsEsp32Mqtt.h"
-#include <Wire.h>
-#include <SPI.h>
+#include <FS.h>          //this needs to be first, or it all crashes and burns...
+#include <WiFiManager.h> //https://github.com/tzapu/WiFiManager
 
 #ifdef ESP32
-  #include <SPIFFS.h>
+#include <SPIFFS.h>
 #endif
 
-#include <ArduinoJson.h>          //https://github.com/bblanchon/ArduinoJson
+#include <Arduino.h>
+#include <ArduinoJson.h> //https://github.com/bblanchon/ArduinoJson
 
-//define your default values here, if there are different values in config.json, they are overwritten.
-char mqtt_server[40];
-char mqtt_port[6] = "8080";
-char api_token[34] = "YOUR_API_TOKEN";
+#include <PubSubClient.h>
 
-//flag for saving data
+// flag for saving data
 bool shouldSaveConfig = false;
 
-// ssid/pw from WM
-char wm_ssid[40];      // Put here your Wi-Fi SSID
-char wm_pw[40];      // Put here your Wi-Fi password
+// ssid/pw and token from WM
+char wm_ssid[40]; // Put here your Wi-Fi SSID
+char wm_pw[40];   // Put here your Wi-Fi password
 
-/****************************************
- * UBIDOTS PUBLISH CODE
- ****************************************/
-const char *UBIDOTS_TOKEN = "";  // Put here your Ubidots TOKEN 
-const char *DEVICE_LABEL = "Test";   // Put here your Device label to which data  will be published
-const char *VARIABLE_LABEL = "Temp"; // Put here your Variable label to which data  will be published
+// define your default values here, if there are different values in config.json, they are overwritten.
+char mqtt_server[40] = "";
+char device_label[40] = "";
 
-const int PUBLISH_FREQUENCY = 5000; // Update rate in milliseconds 
-
+// timers for publishing
+const int PUBLISH_FREQUENCY = 1000; // Update rate in milliseconds
 unsigned long timer;
-uint8_t analogPin = 34; // Pin used to read data from GPIO34 ADC_CH6.
-int tempPin = 34;
 
-const int temp1_pin = 12;
-
-int temp;
-float volts;
-float tempC;
-float temps[10];
-
-Ubidots ubidots(UBIDOTS_TOKEN);
-
+WiFiClient espClient;
+PubSubClient client(espClient);
 
 /****************************************
  * Auxiliar Functions
  ****************************************/
 
 // callback notifying us of the need to save config
-void saveConfigCallback () {
+void saveConfigCallback()
+{
   Serial.println("Should save config");
   shouldSaveConfig = true;
 }
 
-// ubidots callback
+// MQTT callback
 void callback(char *topic, byte *payload, unsigned int length)
 {
   Serial.print("Message arrived [");
@@ -71,149 +52,170 @@ void callback(char *topic, byte *payload, unsigned int length)
   Serial.println();
 }
 
-float getTemp(int pin) {
-  digitalWrite(pin, HIGH);
-  for (int i = 0; i < 10; i++) {
-    temp = analogRead(tempPin);
-    volts = temp / 1024.0;
-    tempC = (volts - 0.5) * 100;
-    temps[i] = tempC;
+// MQTT reconnect​
+void reconnect()
+{
+  // Loop until we're reconnected
+  while (!client.connected())
+  {
+    Serial.print("Attempting MQTT connection...");
+    // Attempt to connect
+    if (client.connect("ESP32Client"))
+    {
+      Serial.println("connected");
+      // Once connected, publish an announcement...
+      client.publish("esp32/online", device_label);
+      // ... and resubscribe
+      // client.subscribe("inTopic");
+    }
+    else
+    {
+      Serial.print("failed, rc=");
+      Serial.print(client.state());
+      Serial.println(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(5000);
+    }
   }
-  digitalWrite(pin, LOW);
-  float sum = 0;
-  for (int i = 0; i < 10; i++) {
-    sum += temps[i];
-  }
-  return sum / 10;
 }
 
+/****************************************
+ * Main Functions
+ ****************************************/
 
-void setup() {
+void setup()
+{
   // put your setup code here, to run once:
   Serial.begin(115200);
   Serial.println();
 
-  // ESP32 PINS
-  pinMode(temp1_pin, OUTPUT);
-  digitalWrite(temp1_pin, LOW);
+  // clean FS, for testing
+  SPIFFS.format();
 
-  //clean FS, for testing
- // SPIFFS.format();
-
-  //read configuration from FS json
+  // read configuration from FS json
   Serial.println("mounting FS...");
 
-  if (SPIFFS.begin()) {
+  if (SPIFFS.begin())
+  {
     Serial.println("mounted file system");
-    if (SPIFFS.exists("/config.json")) {
-      //file exists, reading and loading
+    if (SPIFFS.exists("/config.json"))
+    {
+      // file exists, reading and loading
       Serial.println("reading config file");
       File configFile = SPIFFS.open("/config.json", "r");
-      if (configFile) {
+      if (configFile)
+      {
         Serial.println("opened config file");
         size_t size = configFile.size();
         // Allocate a buffer to store contents of the file.
         std::unique_ptr<char[]> buf(new char[size]);
 
         configFile.readBytes(buf.get(), size);
-
- #if defined(ARDUINOJSON_VERSION_MAJOR) && ARDUINOJSON_VERSION_MAJOR >= 6
+#if defined(ARDUINOJSON_VERSION_MAJOR) && ARDUINOJSON_VERSION_MAJOR >= 6
         DynamicJsonDocument json(1024);
         auto deserializeError = deserializeJson(json, buf.get());
         serializeJson(json, Serial);
-        if ( ! deserializeError ) {
+        if (!deserializeError)
+        {
 #else
         DynamicJsonBuffer jsonBuffer;
-        JsonObject& json = jsonBuffer.parseObject(buf.get());
+        JsonObject &json = jsonBuffer.parseObject(buf.get());
         json.printTo(Serial);
-        if (json.success()) {
+        if (json.success())
+        {
 #endif
           Serial.println("\nparsed json");
-          strcpy(mqtt_port, json["mqtt_port"]);
-          strcpy(api_token, json["api_token"]);
-        } else {
+
+          strcpy(mqtt_server, json["mqtt_server"]);
+          strcpy(device_label, json["device_label"]);
+        }
+        else
+        {
           Serial.println("failed to load json config");
         }
-        configFile.close();
       }
     }
-  } else {
+  }
+  else
+  {
     Serial.println("failed to mount FS");
   }
-  //end read
+  // end read
 
-  // The extra parameters to be configured (can be either global or just in the setup)
-  // After connecting, parameter.getValue() will get you the configured value
   // id/name placeholder/prompt default length
-  WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 40);
-  WiFiManagerParameter custom_api_token("apikey", "API token", api_token, 40);
+  WiFiManagerParameter custom_mqtt_port("server", "MQTT Server", mqtt_server, 40);
+  WiFiManagerParameter custom_device_label("device_label", "Device Label", device_label, 40);
 
-  //WiFiManager
-  //Local intialization. Once its business is done, there is no need to keep it around
+  // WiFiManager
+  // Local intialization. Once its business is done, there is no need to keep it around
   WiFiManager wifiManager;
 
-  //set config save notify callback
+  // set config save notify callback
   wifiManager.setSaveConfigCallback(saveConfigCallback);
 
-  //ADD ALL YOUR PARAMETERS HERE
+  // ADD ALL YOUR PARAMETERS HERE
   wifiManager.addParameter(&custom_mqtt_port);
-  wifiManager.addParameter(&custom_api_token);
+  wifiManager.addParameter(&custom_device_label);
 
-  //reset settings - for testing
-  //wifiManager.resetSettings();
+  // reset settings - for testing
+  wifiManager.resetSettings();
 
-  //set minimu quality of signal so it ignores AP's under that quality
-  //defaults to 8%
+  // set minimu quality of signal so it ignores AP's under that quality
+  // defaults to 8%
   wifiManager.setMinimumSignalQuality();
 
-  //sets timeout until configuration portal gets turned off
+  // sets timeout until configuration portal gets turned off
   wifiManager.setTimeout(180);
 
-  //fetches ssid and pass and tries to connect if not connected starts AP
-  if (!wifiManager.autoConnect("ESP32_Temp", "password")) {
+  // fetches ssid and pass and tries to connect if not connected starts AP
+  if (!wifiManager.autoConnect("ESP32_Temp", "password"))
+  {
     Serial.println("failed to connect and hit timeout");
     delay(3000);
-    //reset and try again, or maybe put it to deep sleep
+    // reset and try again, or maybe put it to deep sleep
     ESP.restart();
     delay(5000);
   }
 
-  //if you get here you have connected to the WiFi
+  // if you get here you have connected to the WiFi
   Serial.println("device has connected to your wifi...yeey :)");
 
-  //read updated CUSTOM parameters
-  strcpy(mqtt_port, custom_mqtt_port.getValue());
-  strcpy(api_token, custom_api_token.getValue());
+  // read updated CUSTOM parameters
+  strcpy(mqtt_server, custom_mqtt_port.getValue());
+  strcpy(device_label, custom_device_label.getValue());
   Serial.println("The values in the file are: ");
-  Serial.println("\tubidots_token : " + String(mqtt_server));
-  Serial.println("\tmqtt_port : " + String(mqtt_port));
-  Serial.println("\tapi_token : " + String(api_token));
+  Serial.println("\tmqtt_token : " + String(mqtt_server));
+  Serial.println("\tdevice_label : " + String(device_label));
 
   // from line 436,439 in WifiManager.h
   // helper to get saved password and ssid, if persistent get stored, else get current if connected
-  // converting ssid/pw String to Char for UBIDOTS connec
+  // converting ssid/pw String to Char for UBIDOTS connect
   int ssid_len = wifiManager.getWiFiSSID().length() + 1;
   wifiManager.getWiFiSSID().toCharArray(wm_ssid, ssid_len);
   int pw_len = wifiManager.getWiFiPass().length() + 1;
   wifiManager.getWiFiPass().toCharArray(wm_pw, pw_len);
 
-  Serial.println("\tyour_ssid : " +  String(wm_ssid));
+  Serial.println("\tyour_ssid : " + String(wm_ssid));
   Serial.println("\tyour_pw : " + String(wm_pw));
 
-  //save the custom parameters to FS
-  if (shouldSaveConfig) {
+  // save the custom parameters to FS
+  if (shouldSaveConfig)
+  {
     Serial.println("saving config");
- #if defined(ARDUINOJSON_VERSION_MAJOR) && ARDUINOJSON_VERSION_MAJOR >= 6
+#if defined(ARDUINOJSON_VERSION_MAJOR) && ARDUINOJSON_VERSION_MAJOR >= 6
     DynamicJsonDocument json(1024);
 #else
     DynamicJsonBuffer jsonBuffer;
-    JsonObject& json = jsonBuffer.createObject();
+    JsonObject &json = jsonBuffer.createObject();
 #endif
-    json["mqtt_port"] = mqtt_port;
-    json["api_token"] = api_token;
+    json["wm_ssid"] = wm_ssid;
+    json["wm_pw"] = wm_pw;
+    json["mqtt_server"] = mqtt_server;
+    json["device_label"] = device_label;
 
     File configFile = SPIFFS.open("/config.json", "w");
-    if (!configFile) {
+    if (!configFile)
+    {
       Serial.println("failed to open config file for writing");
     }
 
@@ -225,35 +227,25 @@ void setup() {
     json.printTo(configFile);
 #endif
     configFile.close();
+    // end save
   }
-  // end save
 
-  Serial.println("local ip");
-  Serial.println(WiFi.localIP());
-
-  const char *WIFI_SSID = wm_ssid;
-  const char *WIFI_PASS = wm_pw;
-
-  // connects to ubidots
-  ubidots.connectToWifi(WIFI_SSID, WIFI_PASS);
-  ubidots.setCallback(callback);
-  ubidots.setup();
-  ubidots.reconnect();
+  // MQTT setup and connection
+  const char *MQTT_IP = mqtt_server;
+  client.setServer(MQTT_IP, 1883);
+  client.setCallback(callback);
 }
 
+void loop()
+{
+  // Node-RED reconnect
+  reconnect();
 
-
-void loop() {
-  if (!ubidots.connected())
+  // test publishing to Node-RED
+  if (millis() - timer > PUBLISH_FREQUENCY)
   { 
-    Serial.println("reconnect U");
-    ubidots.reconnect();
+    String var = "100";
+    client.publish("esp32/wm_test", var.c_str());
   }
-    if (millis() - timer > PUBLISH_FREQUENCY) // triggers the routine every 5 seconds
-  {
-    ubidots.add("temperature1", getTemp(temp1_pin));
-    ubidots.publish(DEVICE_LABEL);
-    timer = millis();
-  }
-  ubidots.loop();
+  timer = millis();
 }
