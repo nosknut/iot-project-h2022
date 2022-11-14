@@ -10,14 +10,16 @@
 
 #include <PubSubClient.h>
 
+/****************************************
+ * Variables
+ ****************************************/
+
 // flag for saving data
 bool shouldSaveConfig = false;
 
-// ssid/pw and token from WM
-char wm_ssid[40]; // Put here your Wi-Fi SSID
-char wm_pw[40];   // Put here your Wi-Fi password
-
-// define your default values here, if there are different values in config.json, they are overwritten.
+// variables from WM
+char wm_ssid[40]; 
+char wm_pw[40];
 char mqtt_server[40] = "";
 char device_label[40] = "";
 
@@ -28,9 +30,148 @@ unsigned long timer;
 WiFiClient espClient;
 PubSubClient client(espClient);
 
+// pins for sensors
+const int analogPin = 34;
+const int lightPin = 17;
+const int lightPin_A = 33;
+const int ntc1_pin_D = 16;
+const int ntc1_pin_A = 32;
+const int ntc2_pin_D = 4;
+const int ntc2_pin_A = 35;
+const int ntc3_pin_D = 2;
+const int ntc3_pin_A = 39;
+const int ntc4_pin_D = 15;
+const int ntc4_pin_A = 36;
+const int tmp31_1_pin = 13;
+const int tmp31_2_pin = 12;
+const int tmp31_3_pin = 14;
+const int tmp31_4_pin = 27;
+const int tmp31_5_pin = 26;
+
+// Variables for NTC calculation
+const int samplingrate = 5;            // number of samples to take
+const float Rref = 1000;               // Value of  resistor used for the voltage divider
+const float nominal_resistance = 1000; // Nominal resistance at 25⁰C
+const float beta = 3730;               // The beta coefficient or the B value of the thermistor (usually 3000-4000) check the datasheet for the accurate value.
+const float nominal_temperature = 25;  // temperature for nominal resistance (almost always 25⁰ C)
+const float Vref = 3.3;                // Reference voltage of the ADC
+
+// variables for temp calculation
+int temp;
+float volts;
+float tempC;
+float temps[10];
+
+// timers for publishing to Node-RED
+int TEMP_PUBLISH_FREQUENCY = 5000;
+unsigned long temp_timer;
+unsigned long light_timer;
+
+
 /****************************************
  * Auxiliar Functions
  ****************************************/
+
+// pinModes for pins
+void pinPins()
+{
+  pinMode(lightPin, OUTPUT);
+  pinMode(ntc1_pin_D, OUTPUT);
+  pinMode(ntc2_pin_D, OUTPUT);
+  pinMode(ntc3_pin_D, OUTPUT);
+  pinMode(ntc4_pin_D, OUTPUT);
+  pinMode(tmp31_1_pin, OUTPUT);
+  pinMode(tmp31_2_pin, OUTPUT);
+  pinMode(tmp31_3_pin, OUTPUT);
+  pinMode(tmp31_4_pin, OUTPUT);
+  pinMode(tmp31_5_pin, OUTPUT);
+  digitalWrite(lightPin, LOW);
+  digitalWrite(ntc1_pin_D, LOW);
+  digitalWrite(ntc2_pin_D, LOW);
+  digitalWrite(ntc3_pin_D, LOW);
+  digitalWrite(ntc4_pin_D, LOW);
+  digitalWrite(tmp31_1_pin, LOW);
+  digitalWrite(tmp31_2_pin, LOW);
+  digitalWrite(tmp31_3_pin, LOW);
+  digitalWrite(tmp31_4_pin, LOW);
+  digitalWrite(tmp31_5_pin, LOW);
+}
+
+// resistance temp get
+float getTempNtc(int D_pin, int A_pin)
+{
+  digitalWrite(D_pin, HIGH);
+  int samples = 0;
+  for (int i = 0; i < samplingrate; i++)
+  {
+    samples += analogRead(A_pin);
+  }
+  digitalWrite(D_pin, LOW);
+  float average = samples / samplingrate;
+  // Serial.print(average);
+  float voltage = average * (Vref / 4096.0);
+  float resistance = ((Rref / voltage) * Vref) - Rref;
+  float steinhart = resistance / nominal_resistance; // (R/Ro)
+  steinhart = log(steinhart);                        // ln(R/Ro)
+  steinhart /= beta;                                 // 1/B * ln(R/Ro)
+  steinhart += 1.0 / (nominal_temperature + 273.15); // + (1/To)
+  steinhart = 1.0 / steinhart;                       // Invert
+  float temp = steinhart - 273.15;
+  return temp;
+}
+
+// TMP36 temp get
+float getTemp(int pin)
+{
+  digitalWrite(pin, HIGH);
+  for (int i = 0; i < 10; i++)
+  {
+    temp = analogRead(analogPin);
+    volts = temp / 1024.0;
+    tempC = (volts - 0.5) * 100;
+    temps[i] = tempC;
+  }
+  digitalWrite(pin, LOW);
+  float sum = 0;
+  for (int i = 0; i < 10; i++)
+  {
+    sum += temps[i];
+  }
+  return sum / 10;
+}
+
+// door check with light sensor
+int getLight(int D_pin, int A_pin)
+{
+  digitalWrite(D_pin, HIGH);
+  int light = analogRead(A_pin);
+  digitalWrite(D_pin, LOW);
+  // if (light > 1000) {
+  //   return true;
+  // }
+  // return false;
+  return light;
+}
+
+// combines temp values into one string and publishes to Node-RED
+void postTempValues()
+{
+  // NTC1/NTC2/NTC3/NTC4/TMP31_1/TMP31_2/TMP31_3/TMP31_4/TMP31_5
+  String temps = String(getLight(lightPin, lightPin_A)) + "," 
+  + String(getTempNtc(ntc1_pin_D, ntc1_pin_A)) + "," 
+  + String(getTempNtc(ntc2_pin_D, ntc2_pin_A)) + "," 
+  + String(getTempNtc(ntc3_pin_D, ntc3_pin_A)) + "," 
+  + String(getTempNtc(ntc4_pin_D, ntc4_pin_A)) + "," 
+  + String(getTemp(tmp31_1_pin)) + "," 
+  + String(getTemp(tmp31_2_pin)) + "," 
+  + String(getTemp(tmp31_3_pin)) + "," 
+  + String(getTemp(tmp31_4_pin)) + "," 
+  + String(getTemp(tmp31_5_pin));
+
+  Serial.println("Temps: ");
+  Serial.println(temps);
+  client.publish("esp32/temps", temps.c_str());
+}
 
 // callback notifying us of the need to save config
 void saveConfigCallback()
@@ -88,6 +229,9 @@ void setup()
   // put your setup code here, to run once:
   Serial.begin(115200);
   Serial.println();
+
+  // pins pins
+  pinPins();
 
   // clean FS, for testing
   SPIFFS.format();
@@ -238,14 +382,18 @@ void setup()
 
 void loop()
 {
-  // Node-RED reconnect
-  reconnect();
 
-  // test publishing to Node-RED
-  if (millis() - timer > PUBLISH_FREQUENCY)
-  { 
-    String var = "100";
-    client.publish("esp32/wm_test", var.c_str());
+  // Node-RED reconnect
+  if (!client.connected())
+  {
+    reconnect();
   }
-  timer = millis();
+
+  // loop that publishes temps to Node_RED every TEMP_PUBLISH_FREQUENCY
+  if (millis() - temp_timer > TEMP_PUBLISH_FREQUENCY)
+  {
+    postTempValues();
+    temp_timer = millis();
+  }
 }
+
