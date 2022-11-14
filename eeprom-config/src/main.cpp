@@ -23,10 +23,6 @@ char wm_pw[40];
 char mqtt_server[40] = "";
 char device_label[40] = "";
 
-// timers for publishing
-const int PUBLISH_FREQUENCY = 1000; // Update rate in milliseconds
-unsigned long timer;
-
 WiFiClient espClient;
 PubSubClient client(espClient);
 
@@ -63,9 +59,14 @@ float tempC;
 float temps[10];
 
 // timers for publishing to Node-RED
-int TEMP_PUBLISH_FREQUENCY = 5000;
+int TEMP_PUBLISH_FREQUENCY = 10000;
 unsigned long temp_timer;
+int LIGHT_CHECK_FREQUENCY = 500;
 unsigned long light_timer;
+bool light_state = false;
+
+unsigned long timout_timer;
+int TIMEOUT = 60000;
 
 
 /****************************************
@@ -141,23 +142,22 @@ float getTemp(int pin)
 }
 
 // door check with light sensor
-int getLight(int D_pin, int A_pin)
+bool getLight(int D_pin, int A_pin)
 {
   digitalWrite(D_pin, HIGH);
   int light = analogRead(A_pin);
   digitalWrite(D_pin, LOW);
-  // if (light > 1000) {
-  //   return true;
-  // }
-  // return false;
-  return light;
+  if (light > 2000) {
+    return true;
+  }
+  return false;
 }
 
 // combines temp values into one string and publishes to Node-RED
 void postTempValues()
 {
   // NTC1/NTC2/NTC3/NTC4/TMP31_1/TMP31_2/TMP31_3/TMP31_4/TMP31_5
-  String temps = String(getLight(lightPin, lightPin_A)) + "," 
+  String temps = String(light_state) + "," 
   + String(getTempNtc(ntc1_pin_D, ntc1_pin_A)) + "," 
   + String(getTempNtc(ntc2_pin_D, ntc2_pin_A)) + "," 
   + String(getTempNtc(ntc3_pin_D, ntc3_pin_A)) + "," 
@@ -220,6 +220,11 @@ void reconnect()
   }
 }
 
+void reset_timers(){
+  // reset timers
+  light_timer = millis();
+  temp_timer = millis();
+}
 /****************************************
  * Main Functions
  ****************************************/
@@ -378,7 +383,9 @@ void setup()
   const char *MQTT_IP = mqtt_server;
   client.setServer(MQTT_IP, 1883);
   client.setCallback(callback);
+  reset_timers();
 }
+
 
 void loop()
 {
@@ -387,6 +394,23 @@ void loop()
   if (!client.connected())
   {
     reconnect();
+  }
+
+  // Light system
+  if (millis() - light_timer > LIGHT_CHECK_FREQUENCY)
+  {
+    light_state = getLight(lightPin, lightPin_A);
+
+    if (light_state == 1)
+    {
+      TEMP_PUBLISH_FREQUENCY = 1000;
+      timout_timer = millis();
+    }
+    else if (light_state == 0 && millis() - timout_timer > TIMEOUT)
+    {
+      TEMP_PUBLISH_FREQUENCY = 10000;
+    }
+    light_timer = millis();
   }
 
   // loop that publishes temps to Node_RED every TEMP_PUBLISH_FREQUENCY
