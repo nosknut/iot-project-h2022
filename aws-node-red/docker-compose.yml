@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  # Required to install npm dependencies for the node-red container
+  # The folder mounted here is shared between them
+  # This container should be run before the node-red container
+  install-node-red:
+    image: node:latest
+    volumes:
+      - ./node-red-data/data:/data
+    working_dir: /data
+    command: npm install
+
+  node-red:
+    container_name: node-red
+    image: nodered/node-red:latest
+    environment:
+      - TZ=Europe/Amsterdam
+    ports:
+      - "1880:1880"
+    volumes:
+      - ./node-red-data/data:/data
