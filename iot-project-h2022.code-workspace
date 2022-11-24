@@ -11,6 +11,9 @@
 		},
 		{
 			"path": "espidf-aws-iot"
+		},
+		{
+			"path": "aws-basic"
 		}
 	],
 	"settings": {}
