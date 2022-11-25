@@ -1,0 +1,318 @@
+[
+    {
+        "id": "e66c370c364a1b34",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "231607e02a3675dd",
+        "type": "ui_tab",
+        "name": "Home",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "93178baf9b6ce4ae",
+        "type": "ui_base",
+        "theme": {
+            "name": "theme-light",
+            "lightTheme": {
+                "default": "#0094CE",
+                "baseColor": "#0094CE",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
+                "edited": true,
+                "reset": false
+            },
+            "darkTheme": {
+                "default": "#097479",
+                "baseColor": "#097479",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
+                "edited": false
+            },
+            "customTheme": {
+                "name": "Untitled Theme 1",
+                "default": "#4B7930",
+                "baseColor": "#4B7930",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif"
+            },
+            "themeState": {
+                "base-color": {
+                    "default": "#0094CE",
+                    "value": "#0094CE",
+                    "edited": false
+                },
+                "page-titlebar-backgroundColor": {
+                    "value": "#0094CE",
+                    "edited": false
+                },
+                "page-backgroundColor": {
+                    "value": "#fafafa",
+                    "edited": false
+                },
+                "page-sidebar-backgroundColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "group-textColor": {
+                    "value": "#1bbfff",
+                    "edited": false
+                },
+                "group-borderColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "group-backgroundColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "widget-textColor": {
+                    "value": "#111111",
+                    "edited": false
+                },
+                "widget-backgroundColor": {
+                    "value": "#0094ce",
+                    "edited": false
+                },
+                "widget-borderColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "base-font": {
+                    "value": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif"
+                }
+            },
+            "angularTheme": {
+                "primary": "indigo",
+                "accents": "blue",
+                "warn": "red",
+                "background": "grey",
+                "palette": "light"
+            }
+        },
+        "site": {
+            "name": "Node-RED Dashboard",
+            "hideToolbar": "false",
+            "allowSwipe": "false",
+            "lockMenu": "false",
+            "allowTempTheme": "true",
+            "dateFormat": "DD/MM/YYYY",
+            "sizes": {
+                "sx": 48,
+                "sy": 48,
+                "gx": 6,
+                "gy": 6,
+                "cx": 6,
+                "cy": 6,
+                "px": 0,
+                "py": 0
+            }
+        }
+    },
+    {
+        "id": "926848b0e5a501a2",
+        "type": "ui_group",
+        "name": "Default",
+        "tab": "231607e02a3675dd",
+        "order": 1,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "d8b3d0e115cb372b",
+        "type": "http request",
+        "z": "e66c370c364a1b34",
+        "name": "",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "query",
+        "url": "https://3n36puf5td.execute-api.us-west-2.amazonaws.com/default/ddb_rest_api",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 170,
+        "y": 240,
+        "wires": [
+            [
+                "7cad5914d3327367"
+            ]
+        ]
+    },
+    {
+        "id": "a49fa8f33d5eedba",
+        "type": "inject",
+        "z": "e66c370c364a1b34",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"TableName\":\"temp_data\",\"Limit\":1,\"device_id\":\"2f6c53f7-e23f-4d30-b10f-fa032880073d\",\"ascending\":false}",
+        "payloadType": "json",
+        "x": 170,
+        "y": 180,
+        "wires": [
+            [
+                "d8b3d0e115cb372b"
+            ]
+        ]
+    },
+    {
+        "id": "24939003410394ce",
+        "type": "debug",
+        "z": "e66c370c364a1b34",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 380,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "7cad5914d3327367",
+        "type": "function",
+        "z": "e66c370c364a1b34",
+        "name": "function 1",
+        "func": "return {\n    payload: msg.payload.Items[0]\n};\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 160,
+        "y": 300,
+        "wires": [
+            [
+                "1e6ed594ed6e33fc",
+                "24939003410394ce",
+                "eb39ccdc5cbe6fc7"
+            ]
+        ]
+    },
+    {
+        "id": "1e6ed594ed6e33fc",
+        "type": "rbe",
+        "z": "e66c370c364a1b34",
+        "name": "",
+        "func": "rbe",
+        "gap": "",
+        "start": "",
+        "inout": "in",
+        "septopics": false,
+        "property": "payload.sample_time",
+        "topi": "topic",
+        "x": 150,
+        "y": 360,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f09c17dc39baebfa",
+        "type": "ui_chart",
+        "z": "e66c370c364a1b34",
+        "name": "",
+        "group": "926848b0e5a501a2",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "label": "chart",
+        "chartType": "line",
+        "legend": "false",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": 1,
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 370,
+        "y": 480,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "eb39ccdc5cbe6fc7",
+        "type": "function",
+        "z": "e66c370c364a1b34",
+        "name": "function 2",
+        "func": "return [\n        {topic: \"NTC_1\", payload: msg.payload.device_data.ntc_1},\n        {topic: \"NTC_2\", payload: msg.payload.device_data.ntc_2},\n        {topic: \"NTC_3\", payload: 0/*msg.payload.device_data.ntc_3*/},\n        {topic: \"NTC_4\", payload: 0/*msg.payload.device_data.ntc_4*/},\n        {topic: \"TMP36_1\", payload: 0/*msg.payload.device_data.tmp36_1*/},\n        {topic: \"TMP36_2\", payload: 0/*msg.payload.device_data.tmp36_2*/},\n        {topic: \"TMP36_3\", payload: 0/*msg.payload.device_data.tmp36_3*/},\n        {topic: \"TMP36_4\", payload: 0/*msg.payload.device_data.tmp36_4*/},\n        {topic: \"TMP36_5\", payload: 0/*msg.payload.device_data.tmp36_5*/},\n]\n",
+        "outputs": 9,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 160,
+        "y": 480,
+        "wires": [
+            [
+                "f09c17dc39baebfa"
+            ],
+            [
+                "f09c17dc39baebfa"
+            ],
+            [
+                "f09c17dc39baebfa"
+            ],
+            [
+                "f09c17dc39baebfa"
+            ],
+            [
+                "f09c17dc39baebfa"
+            ],
+            [
+                "f09c17dc39baebfa"
+            ],
+            [
+                "f09c17dc39baebfa"
+            ],
+            [
+                "f09c17dc39baebfa"
+            ],
+            [
+                "f09c17dc39baebfa"
+            ]
+        ]
+    }
+]
