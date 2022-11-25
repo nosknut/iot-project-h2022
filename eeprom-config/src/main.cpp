@@ -40,7 +40,7 @@ struct AnalogMultiplexerPinPair
 
 const String AWS_CONFIG_PATH = "/aws-config.json";
 
-const String TOPIC = String(DEVICE_ID) + "/temperature";
+const String TOPIC = "devices/" + String(DEVICE_ID) + "/temperature";
 
 const AnalogMultiplexerPinPair LIGHT_PINS = {
     .enable = 17,
