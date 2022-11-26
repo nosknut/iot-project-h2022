@@ -98,15 +98,15 @@ PubSubClient pubSubClient(wifiClient);
 bool doorOpen;
 unsigned long tempPublishDelay = TEMP_PUBLISH_DELAY_DOOR_CLOSED;
 
-float getNtcTemp(int D_pin, int A_pin)
+float getNtcTemp(AnalogMultiplexerPinPair pins)
 {
-  digitalWrite(D_pin, HIGH);
+  digitalWrite(pins.enable, HIGH);
   int samples = 0;
   for (int i = 0; i < AVERAGE_WINDOW_SIZE; i++)
   {
-    samples += analogRead(A_pin);
+    samples += analogRead(pins.input);
   }
-  digitalWrite(D_pin, LOW);
+  digitalWrite(pins.enable, LOW);
   float average = samples / AVERAGE_WINDOW_SIZE;
   // Serial.print(average);
   float voltage = average * (NTC_CONFIG.vRef / 4096.0);
@@ -275,7 +275,7 @@ void postTempValues()
   int i = 1;
   for (auto pins : NTC_PINS)
   {
-    json["ntc_" + String(i)] = getNtcTemp(pins.input, pins.enable);
+    json["ntc_" + String(i)] = getNtcTemp(pins);
     i++;
   }
 
