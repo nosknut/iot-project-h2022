@@ -98,6 +98,8 @@ PubSubClient pubSubClient(wifiClient);
 bool doorOpen;
 unsigned long tempPublishDelay = TEMP_PUBLISH_DELAY_DOOR_CLOSED;
 
+DynamicJsonDocument publishTempJsonDoc(1024);
+
 float getNtcTemp(AnalogMultiplexerPinPair pins)
 {
   digitalWrite(pins.enable, HIGH);
@@ -268,29 +270,20 @@ void updateTempPublisherDelay()
 
 void postTempValues()
 {
-  DynamicJsonDocument json(1024);
 
-  json["door_open"] = doorOpen;
-
-  int i = 1;
-  for (auto pins : NTC_PINS)
-  {
-    json["ntc_" + String(i)] = getNtcTemp(pins);
-    i++;
-  }
-
-  i = 1;
-  for (auto pin : TMP_36_ENABLE_PINS)
-  {
-    json["tmp36_" + String(i)] = getTMP36Temp(pin);
-    i++;
-  }
-
+  publishTempJsonDoc["d"] = doorOpen;
+  publishTempJsonDoc["bbr"] = getNtcTemp(NTC_PINS[0]);
+  publishTempJsonDoc["tbr"] = getNtcTemp(NTC_PINS[1]);
+  publishTempJsonDoc["tbl"] = getNtcTemp(NTC_PINS[2]);
+  publishTempJsonDoc["bbl"] = getNtcTemp(NTC_PINS[3]);
+  publishTempJsonDoc["o"] = getTMP36Temp(TMP_36_ENABLE_PINS[0]);
+  publishTempJsonDoc["tfr"] = getTMP36Temp(TMP_36_ENABLE_PINS[1]);
+  publishTempJsonDoc["bfr"] = getTMP36Temp(TMP_36_ENABLE_PINS[2]);
+  publishTempJsonDoc["tfl"] = getTMP36Temp(TMP_36_ENABLE_PINS[3]);
+  publishTempJsonDoc["bfl"] = getTMP36Temp(TMP_36_ENABLE_PINS[4]);
+  
   String payload;
-  serializeJson(json, payload);
-
-  Serial.println("Publishing message on topic [" + TOPIC + "]:");
-  Serial.println(payload);
+  serializeJson(publishTempJsonDoc, payload);
 
   pubSubClient.publish(TOPIC.c_str(), payload.c_str());
 }
