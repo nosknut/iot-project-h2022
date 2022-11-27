@@ -1,0 +1,23 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-tempsensorfrontend-dev-33951-authRole",
+      "UnauthRoleArn": "arn:aws:iam::331621956793:role/amplify-tempsensorfrontend-dev-33951-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::331621956793:role/amplify-tempsensorfrontend-dev-33951-authRole",
+      "Region": "us-west-2",
+      "DeploymentBucketName": "amplify-tempsensorfrontend-dev-33951-deployment",
+      "UnauthRoleName": "amplify-tempsensorfrontend-dev-33951-unauthRole",
+      "StackName": "amplify-tempsensorfrontend-dev-33951",
+      "StackId": "arn:aws:cloudformation:us-west-2:331621956793:stack/amplify-tempsensorfrontend-dev-33951/c6fb2f50-6dfc-11ed-96e1-06ce50a2c8ab",
+      "AmplifyAppId": "dfzwprfzj906b"
+    },
+    "categories": {
+      "auth": {
+        "tempsensorfrontendc5d30c4f": {}
+      },
+      "api": {
+        "tempsensorfrontend": {}
+      }
+    }
+  }
+}

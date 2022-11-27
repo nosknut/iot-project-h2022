@@ -1,0 +1,11 @@
+{
+  "AppSyncApiName": "tempsensorfrontend",
+  "DynamoDBBillingMode": "PAY_PER_REQUEST",
+  "DynamoDBEnableServerSideEncryption": false,
+  "AuthCognitoUserPoolId": {
+    "Fn::GetAtt": [
+      "authtempsensorfrontendc5d30c4f",
+      "Outputs.UserPoolId"
+    ]
+  }
+}
