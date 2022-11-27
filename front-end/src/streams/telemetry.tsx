@@ -50,6 +50,7 @@ interval(1000).pipe(
 })
 
 export const telemetry$ = constantTelemetry$.pipe(
+    filter(val => !!val),
     distinct(entry => entry.sample_time)
 )
 
