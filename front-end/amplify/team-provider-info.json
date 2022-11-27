@@ -17,6 +17,12 @@
       },
       "api": {
         "tempsensorfrontend": {}
+      },
+      "hosting": {
+        "amplifyhosting": {
+          "appId": "dfzwprfzj906b",
+          "type": "cicd"
+        }
       }
     }
   }
