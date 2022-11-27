@@ -1,8 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
+import { CssBaseline } from '@mui/material';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { Themes } from './components/Themes';
 import { Amplify } from 'aws-amplify';
 import awsExports from './aws-exports';
 
@@ -13,7 +14,11 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
-    <App />
+    <Themes>
+      <CssBaseline>
+        <App />
+      </CssBaseline>
+    </Themes>
   </React.StrictMode>
 );
 
