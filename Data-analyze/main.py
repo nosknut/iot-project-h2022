@@ -75,29 +75,29 @@ temps["temp9"] = np.array(temps["temp9"])
 fig, ax1 = plt.subplots()
 # Set labels
 ax1.set_xlabel('Time')
-ax1.set_ylabel('Temperature')
 ax1.set_title('Temperature over time')
+ax1.set_ylabel('Light')
+# Plot the light
+ax1.plot(times, light, label="light", linestyle='--', color='black', linewidth=0.2)
 
-# Plot the data
-ax1.plot(times, temps["temp1"], label="BBR")
-ax1.plot(times, temps["temp2"], label="TBR")
-ax1.plot(times, temps["temp3"], label="TBL")
-ax1.plot(times, temps["temp4"], label="BBL")
-ax1.plot(times, temps["temp5"], label="Outside")
-ax1.plot(times, temps["temp6"], label="TFR")
-ax1.plot(times, temps["temp7"], label="BFR")
-ax1.plot(times, temps["temp8"], label="TFL")
-ax1.plot(times, temps["temp9"], label="BFL")
-plt.legend()
-
-# Make a new axis for the light and plot it
+# Plot the temperatures
 ax2 = ax1.twinx()
-ax2.set_ylabel('Light')
-ax2.plot(times, light, label="light", linestyle='--', color='black', linewidth=0.2)
+ax2.set_ylabel('Temperature')
+ax2.set_xlabel('Time')
+ax2.plot(times, temps["temp1"], label="BBR")
+ax2.plot(times, temps["temp2"], label="TBR")
+ax2.plot(times, temps["temp3"], label="TBL")
+ax2.plot(times, temps["temp4"], label="BBL")
+ax2.plot(times, temps["temp5"], label="Outside")
+ax2.plot(times, temps["temp6"], label="TFR")
+ax2.plot(times, temps["temp7"], label="BFR")
+ax2.plot(times, temps["temp8"], label="TFL")
+ax2.plot(times, temps["temp9"], label="BFL")
+
 
 # Set the x axis to be dates
 formatter = mdates.DateFormatter('%d - %H:%M')
 ax1.xaxis.set_major_formatter(formatter)
 fig.autofmt_xdate()
-
+plt.legend()
 plt.show()
