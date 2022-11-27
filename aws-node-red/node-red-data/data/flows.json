@@ -8,6 +8,14 @@
         "env": []
     },
     {
+        "id": "764a3170e0deeaaf",
+        "type": "tab",
+        "label": "Sign Up",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "231607e02a3675dd",
         "type": "ui_tab",
         "name": "Home",
@@ -119,9 +127,17 @@
         "tab": "231607e02a3675dd",
         "order": 1,
         "disp": true,
-        "width": "6",
+        "width": "12",
         "collapse": false,
         "className": ""
+    },
+    {
+        "id": "4c2d38ab057fe441",
+        "type": "ui_tab",
+        "name": "Sign In",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
     },
     {
         "id": "d8b3d0e115cb372b",
@@ -139,8 +155,8 @@
         "authType": "",
         "senderr": false,
         "headers": [],
-        "x": 170,
-        "y": 240,
+        "x": 290,
+        "y": 280,
         "wires": [
             [
                 "7cad5914d3327367"
@@ -157,15 +173,15 @@
                 "p": "payload"
             }
         ],
-        "repeat": "",
+        "repeat": "1",
         "crontab": "",
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
         "payload": "{\"TableName\":\"temp_data\",\"Limit\":1,\"device_id\":\"2f6c53f7-e23f-4d30-b10f-fa032880073d\",\"ascending\":false}",
         "payloadType": "json",
-        "x": 170,
-        "y": 180,
+        "x": 290,
+        "y": 220,
         "wires": [
             [
                 "d8b3d0e115cb372b"
@@ -185,8 +201,8 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 380,
-        "y": 360,
+        "x": 500,
+        "y": 400,
         "wires": []
     },
     {
@@ -200,13 +216,12 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 160,
-        "y": 300,
+        "x": 280,
+        "y": 340,
         "wires": [
             [
                 "1e6ed594ed6e33fc",
-                "24939003410394ce",
-                "eb39ccdc5cbe6fc7"
+                "24939003410394ce"
             ]
         ]
     },
@@ -222,10 +237,12 @@
         "septopics": false,
         "property": "payload.sample_time",
         "topi": "topic",
-        "x": 150,
-        "y": 360,
+        "x": 270,
+        "y": 400,
         "wires": [
-            []
+            [
+                "eb39ccdc5cbe6fc7"
+            ]
         ]
     },
     {
@@ -235,8 +252,8 @@
         "name": "",
         "group": "926848b0e5a501a2",
         "order": 0,
-        "width": 0,
-        "height": 0,
+        "width": "12",
+        "height": "6",
         "label": "chart",
         "chartType": "line",
         "legend": "false",
@@ -247,7 +264,7 @@
         "ymin": "",
         "ymax": "",
         "removeOlder": 1,
-        "removeOlderPoints": "",
+        "removeOlderPoints": "10",
         "removeOlderUnit": "3600",
         "cutout": 0,
         "useOneColor": false,
@@ -266,8 +283,8 @@
         "outputs": 1,
         "useDifferentColor": false,
         "className": "",
-        "x": 370,
-        "y": 480,
+        "x": 490,
+        "y": 520,
         "wires": [
             []
         ]
@@ -277,14 +294,14 @@
         "type": "function",
         "z": "e66c370c364a1b34",
         "name": "function 2",
-        "func": "return [\n        {topic: \"NTC_1\", payload: msg.payload.device_data.ntc_1},\n        {topic: \"NTC_2\", payload: msg.payload.device_data.ntc_2},\n        {topic: \"NTC_3\", payload: 0/*msg.payload.device_data.ntc_3*/},\n        {topic: \"NTC_4\", payload: 0/*msg.payload.device_data.ntc_4*/},\n        {topic: \"TMP36_1\", payload: 0/*msg.payload.device_data.tmp36_1*/},\n        {topic: \"TMP36_2\", payload: 0/*msg.payload.device_data.tmp36_2*/},\n        {topic: \"TMP36_3\", payload: 0/*msg.payload.device_data.tmp36_3*/},\n        {topic: \"TMP36_4\", payload: 0/*msg.payload.device_data.tmp36_4*/},\n        {topic: \"TMP36_5\", payload: 0/*msg.payload.device_data.tmp36_5*/},\n]\n",
+        "func": "return [\n        {topic: \"bbr\", payload: msg.payload.device_data.bbr},\n        {topic: \"tbr\", payload: msg.payload.device_data.tbr},\n        {topic: \"tbl\", payload: msg.payload.device_data.tbl},\n        {topic: \"bbl\", payload: msg.payload.device_data.bbl},\n        {topic: \"o\", payload: msg.payload.device_data.o},\n        {topic: \"tfr\", payload: msg.payload.device_data.tfr},\n        {topic: \"bfr\", payload: msg.payload.device_data.bfr},\n        {topic: \"tfl\", payload: msg.payload.device_data.tfl},\n        {topic: \"bfl\", payload: msg.payload.device_data.bfl},\n]\n",
         "outputs": 9,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 160,
-        "y": 480,
+        "x": 280,
+        "y": 520,
         "wires": [
             [
                 "f09c17dc39baebfa"
@@ -310,6 +327,34 @@
             [
                 "f09c17dc39baebfa"
             ],
+            [
+                "f09c17dc39baebfa"
+            ]
+        ]
+    },
+    {
+        "id": "d0cb9ec61ea26193",
+        "type": "ui_button",
+        "z": "e66c370c364a1b34",
+        "name": "",
+        "group": "926848b0e5a501a2",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Clear Chart",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "[]",
+        "payloadType": "json",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 290,
+        "y": 620,
+        "wires": [
             [
                 "f09c17dc39baebfa"
             ]

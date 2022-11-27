@@ -654,5 +654,89 @@
                 "file": "/data/node_modules/node-red-dashboard/nodes/ui_spacer.js"
             }
         }
+    },
+    "node-red-contrib-aws-cognito-adapter": {
+        "name": "node-red-contrib-aws-cognito-adapter",
+        "version": "1.0.5",
+        "local": true,
+        "user": true,
+        "nodes": {
+            "cognito-user-login": {
+                "name": "cognito-user-login",
+                "types": [
+                    "cognito-user-login"
+                ],
+                "enabled": true,
+                "local": true,
+                "user": false,
+                "module": "node-red-contrib-aws-cognito-adapter",
+                "file": "/data/node_modules/node-red-contrib-aws-cognito-adapter/cognito-user-login.js"
+            },
+            "cognito-create-user": {
+                "name": "cognito-create-user",
+                "types": [
+                    "cognito-create-user"
+                ],
+                "enabled": true,
+                "local": true,
+                "user": false,
+                "module": "node-red-contrib-aws-cognito-adapter",
+                "file": "/data/node_modules/node-red-contrib-aws-cognito-adapter/cognito-create-user.js"
+            },
+            "cognito-verify-user": {
+                "name": "cognito-verify-user",
+                "types": [
+                    "cognito-verify-user"
+                ],
+                "enabled": true,
+                "local": true,
+                "user": false,
+                "module": "node-red-contrib-aws-cognito-adapter",
+                "file": "/data/node_modules/node-red-contrib-aws-cognito-adapter/cognito-verify-user.js"
+            }
+        }
+    },
+    "node-red-contrib-localstorage": {
+        "name": "node-red-contrib-localstorage",
+        "version": "1.0.1",
+        "local": true,
+        "user": true,
+        "nodes": {
+            "localstorage": {
+                "name": "localstorage",
+                "types": [
+                    "local-storage",
+                    "set item",
+                    "get item",
+                    "remove item",
+                    "clear",
+                    "has item"
+                ],
+                "enabled": true,
+                "local": true,
+                "user": false,
+                "module": "node-red-contrib-localstorage",
+                "file": "/data/node_modules/node-red-contrib-localstorage/src/localstorage.js"
+            }
+        }
+    },
+    "node-red-contrib-aws-cognito": {
+        "name": "node-red-contrib-aws-cognito",
+        "version": "1.0.1",
+        "local": true,
+        "user": true,
+        "nodes": {
+            "cognito": {
+                "name": "cognito",
+                "types": [
+                    "cognito"
+                ],
+                "enabled": true,
+                "local": true,
+                "user": false,
+                "module": "node-red-contrib-aws-cognito",
+                "file": "/data/node_modules/node-red-contrib-aws-cognito/nodes/Cognito/cognito.js"
+            }
+        }
     }
 }
