@@ -96,7 +96,7 @@ ax2.plot(times, temps["temp9"], label="BFL")
 
 
 # Set the x axis to be dates
-formatter = mdates.DateFormatter('%d - %H:%M')
+formatter = mdates.DateFormatter('%d - %H:%M:%S.%f')
 ax1.xaxis.set_major_formatter(formatter)
 fig.autofmt_xdate()
 plt.legend()
