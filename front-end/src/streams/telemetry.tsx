@@ -1,7 +1,7 @@
 import { bind } from "@react-rxjs/core";
 import { createSignal } from "@react-rxjs/utils";
 import { combineLatestWith, distinct, filter, interval, map } from "rxjs";
-import { currentDeviceId$ } from "./currentDeviceId";
+import { currentDevice$ } from "./currentDevice";
 
 const TELEMETRY_URL = "https://3n36puf5td.execute-api.us-west-2.amazonaws.com/default/ddb_rest_api"
 
@@ -29,8 +29,8 @@ export type TempDataEntry = {
 const [constantTelemetry$, setConstantTelemetry] = createSignal<TempDataEntry>()
 
 interval(1000).pipe(
-    combineLatestWith(currentDeviceId$),
-    map(([_, deviceId]) => deviceId),
+    combineLatestWith(currentDevice$),
+    map(([_, device]) => device?.deviceId),
     filter(deviceId => deviceId !== null),
 ).subscribe((deviceId) => {
     if (deviceId) {

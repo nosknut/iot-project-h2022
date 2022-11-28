@@ -7,11 +7,11 @@ import { Device } from '../API';
 import { Button, FormControl, Grid, InputLabel, MenuItem, Select, Typography } from '@mui/material';
 import { RealtimePlot } from '../components/RealtimePlot';
 import { useNavigate } from 'react-router-dom';
-import { setCurrentDeviceId, useCurrentDeviceId } from '../streams/currentDeviceId';
+import { setCurrentDevice, useCurrentDevice } from '../streams/currentDevice';
 
 export const Dashboard = () => {
     const navigate = useNavigate()
-    const currentDeviceId = useCurrentDeviceId();
+    const currentDevice = useCurrentDevice();
     const [devices, setDevices] = useState<{ [id: string]: Device }>({});
 
     useEffect(() => {
@@ -26,14 +26,14 @@ export const Dashboard = () => {
     }, [setDevices]);
 
     const deleteCurrentDevice = async () => {
-        if (currentDeviceId) {
-            const id = Object.values(devices).find((device) => device.deviceId === currentDeviceId)?.id;
+        if (currentDevice) {
+            const id = currentDevice.id
             if (id) {
                 await (API.graphql(graphqlOperation(deleteDevice, { input: { id } })) as any)
                 const newDevices = { ...devices };
                 delete newDevices[id];
                 setDevices(newDevices);
-                setCurrentDeviceId(null);
+                setCurrentDevice(null);
             }
         }
     }
@@ -53,12 +53,12 @@ export const Dashboard = () => {
                         <Select
                             labelId="device-select-label"
                             id="device-select"
-                            value={currentDeviceId || ""}
+                            value={currentDevice?.id || ""}
                             label="Device"
-                            onChange={(e) => setCurrentDeviceId(e.target.value as string)}
+                            onChange={(e) => setCurrentDevice(devices[e.target.value as string])}
                         >
                             {Object.values(devices).map(device => (
-                                <MenuItem key={device.deviceId} value={device.deviceId}>{device.name}</MenuItem>
+                                <MenuItem key={device.id} value={device.id}>{device.name}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>
@@ -71,7 +71,7 @@ export const Dashboard = () => {
                     onClick={() => navigate("/devices/add")}
                 >Add New Device</Button>
             </Grid>
-            {currentDeviceId && (
+            {currentDevice && (
                 <>
                     <Grid item xs={12} marginY={1}>
                         <Button
