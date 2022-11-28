@@ -27,11 +27,14 @@ export const Dashboard = () => {
 
     const deleteCurrentDevice = async () => {
         if (currentDeviceId) {
-            await (API.graphql(graphqlOperation(deleteDevice, { input: { id: currentDeviceId } })) as any)
-            const newDevices = { ...devices };
-            delete newDevices[currentDeviceId];
-            setDevices(newDevices);
-            setCurrentDeviceId(null);
+            const id = Object.values(devices).find((device) => device.deviceId === currentDeviceId)?.id;
+            if (id) {
+                await (API.graphql(graphqlOperation(deleteDevice, { input: { id } })) as any)
+                const newDevices = { ...devices };
+                delete newDevices[id];
+                setDevices(newDevices);
+                setCurrentDeviceId(null);
+            }
         }
     }
 
@@ -55,7 +58,7 @@ export const Dashboard = () => {
                             onChange={(e) => setCurrentDeviceId(e.target.value as string)}
                         >
                             {Object.values(devices).map(device => (
-                                <MenuItem key={device.id} value={device.id}>{device.name}</MenuItem>
+                                <MenuItem key={device.deviceId} value={device.deviceId}>{device.name}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>

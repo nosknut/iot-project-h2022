@@ -9,6 +9,7 @@ export const onCreateDevice = /* GraphQL */ `
   ) {
     onCreateDevice(filter: $filter, owner: $owner) {
       id
+      deviceId
       name
       type
       createdAt
@@ -24,6 +25,7 @@ export const onUpdateDevice = /* GraphQL */ `
   ) {
     onUpdateDevice(filter: $filter, owner: $owner) {
       id
+      deviceId
       name
       type
       createdAt
@@ -39,71 +41,9 @@ export const onDeleteDevice = /* GraphQL */ `
   ) {
     onDeleteDevice(filter: $filter, owner: $owner) {
       id
+      deviceId
       name
       type
-      createdAt
-      updatedAt
-      owner
-    }
-  }
-`;
-export const onCreateUser = /* GraphQL */ `
-  subscription OnCreateUser(
-    $filter: ModelSubscriptionUserFilterInput
-    $owner: String
-  ) {
-    onCreateUser(filter: $filter, owner: $owner) {
-      id
-      Devices {
-        id
-        name
-        type
-        createdAt
-        updatedAt
-        owner
-      }
-      createdAt
-      updatedAt
-      owner
-    }
-  }
-`;
-export const onUpdateUser = /* GraphQL */ `
-  subscription OnUpdateUser(
-    $filter: ModelSubscriptionUserFilterInput
-    $owner: String
-  ) {
-    onUpdateUser(filter: $filter, owner: $owner) {
-      id
-      Devices {
-        id
-        name
-        type
-        createdAt
-        updatedAt
-        owner
-      }
-      createdAt
-      updatedAt
-      owner
-    }
-  }
-`;
-export const onDeleteUser = /* GraphQL */ `
-  subscription OnDeleteUser(
-    $filter: ModelSubscriptionUserFilterInput
-    $owner: String
-  ) {
-    onDeleteUser(filter: $filter, owner: $owner) {
-      id
-      Devices {
-        id
-        name
-        type
-        createdAt
-        updatedAt
-        owner
-      }
       createdAt
       updatedAt
       owner

@@ -4,11 +4,13 @@
 
 export type CreateDeviceInput = {
   id?: string | null,
+  deviceId: string,
   name: string,
   type: string,
 };
 
 export type ModelDeviceConditionInput = {
+  deviceId?: ModelIDInput | null,
   name?: ModelStringInput | null,
   type?: ModelStringInput | null,
   and?: Array< ModelDeviceConditionInput | null > | null,
@@ -16,7 +18,7 @@ export type ModelDeviceConditionInput = {
   not?: ModelDeviceConditionInput | null,
 };
 
-export type ModelStringInput = {
+export type ModelIDInput = {
   ne?: string | null,
   eq?: string | null,
   le?: string | null,
@@ -56,63 +58,7 @@ export type ModelSizeInput = {
   between?: Array< number | null > | null,
 };
 
-export type Device = {
-  __typename: "Device",
-  id: string,
-  name: string,
-  type: string,
-  createdAt: string,
-  updatedAt: string,
-  owner?: string | null,
-};
-
-export type UpdateDeviceInput = {
-  id: string,
-  name?: string | null,
-  type?: string | null,
-};
-
-export type DeleteDeviceInput = {
-  id: string,
-};
-
-export type CreateUserInput = {
-  id?: string | null,
-};
-
-export type ModelUserConditionInput = {
-  and?: Array< ModelUserConditionInput | null > | null,
-  or?: Array< ModelUserConditionInput | null > | null,
-  not?: ModelUserConditionInput | null,
-};
-
-export type User = {
-  __typename: "User",
-  id: string,
-  Devices?:  Array<Device | null > | null,
-  createdAt: string,
-  updatedAt: string,
-  owner?: string | null,
-};
-
-export type UpdateUserInput = {
-  id: string,
-};
-
-export type DeleteUserInput = {
-  id: string,
-};
-
-export type ModelDeviceFilterInput = {
-  id?: ModelIDInput | null,
-  name?: ModelStringInput | null,
-  type?: ModelStringInput | null,
-  and?: Array< ModelDeviceFilterInput | null > | null,
-  or?: Array< ModelDeviceFilterInput | null > | null,
-  not?: ModelDeviceFilterInput | null,
-};
-
-export type ModelIDInput = {
+export type ModelStringInput = {
   ne?: string | null,
   eq?: string | null,
   le?: string | null,
@@ -128,27 +74,47 @@ export type ModelIDInput = {
   size?: ModelSizeInput | null,
 };
 
+export type Device = {
+  __typename: "Device",
+  id: string,
+  deviceId: string,
+  name: string,
+  type: string,
+  createdAt: string,
+  updatedAt: string,
+  owner?: string | null,
+};
+
+export type UpdateDeviceInput = {
+  id: string,
+  deviceId?: string | null,
+  name?: string | null,
+  type?: string | null,
+};
+
+export type DeleteDeviceInput = {
+  id: string,
+};
+
+export type ModelDeviceFilterInput = {
+  id?: ModelIDInput | null,
+  deviceId?: ModelIDInput | null,
+  name?: ModelStringInput | null,
+  type?: ModelStringInput | null,
+  and?: Array< ModelDeviceFilterInput | null > | null,
+  or?: Array< ModelDeviceFilterInput | null > | null,
+  not?: ModelDeviceFilterInput | null,
+};
+
 export type ModelDeviceConnection = {
   __typename: "ModelDeviceConnection",
   items:  Array<Device | null >,
   nextToken?: string | null,
 };
 
-export type ModelUserFilterInput = {
-  id?: ModelIDInput | null,
-  and?: Array< ModelUserFilterInput | null > | null,
-  or?: Array< ModelUserFilterInput | null > | null,
-  not?: ModelUserFilterInput | null,
-};
-
-export type ModelUserConnection = {
-  __typename: "ModelUserConnection",
-  items:  Array<User | null >,
-  nextToken?: string | null,
-};
-
 export type ModelSubscriptionDeviceFilterInput = {
   id?: ModelSubscriptionIDInput | null,
+  deviceId?: ModelSubscriptionIDInput | null,
   name?: ModelSubscriptionStringInput | null,
   type?: ModelSubscriptionStringInput | null,
   and?: Array< ModelSubscriptionDeviceFilterInput | null > | null,
@@ -185,12 +151,6 @@ export type ModelSubscriptionStringInput = {
   notIn?: Array< string | null > | null,
 };
 
-export type ModelSubscriptionUserFilterInput = {
-  id?: ModelSubscriptionIDInput | null,
-  and?: Array< ModelSubscriptionUserFilterInput | null > | null,
-  or?: Array< ModelSubscriptionUserFilterInput | null > | null,
-};
-
 export type CreateDeviceMutationVariables = {
   input: CreateDeviceInput,
   condition?: ModelDeviceConditionInput | null,
@@ -200,6 +160,7 @@ export type CreateDeviceMutation = {
   createDevice?:  {
     __typename: "Device",
     id: string,
+    deviceId: string,
     name: string,
     type: string,
     createdAt: string,
@@ -217,6 +178,7 @@ export type UpdateDeviceMutation = {
   updateDevice?:  {
     __typename: "Device",
     id: string,
+    deviceId: string,
     name: string,
     type: string,
     createdAt: string,
@@ -234,80 +196,9 @@ export type DeleteDeviceMutation = {
   deleteDevice?:  {
     __typename: "Device",
     id: string,
+    deviceId: string,
     name: string,
     type: string,
-    createdAt: string,
-    updatedAt: string,
-    owner?: string | null,
-  } | null,
-};
-
-export type CreateUserMutationVariables = {
-  input: CreateUserInput,
-  condition?: ModelUserConditionInput | null,
-};
-
-export type CreateUserMutation = {
-  createUser?:  {
-    __typename: "User",
-    id: string,
-    Devices?:  Array< {
-      __typename: "Device",
-      id: string,
-      name: string,
-      type: string,
-      createdAt: string,
-      updatedAt: string,
-      owner?: string | null,
-    } | null > | null,
-    createdAt: string,
-    updatedAt: string,
-    owner?: string | null,
-  } | null,
-};
-
-export type UpdateUserMutationVariables = {
-  input: UpdateUserInput,
-  condition?: ModelUserConditionInput | null,
-};
-
-export type UpdateUserMutation = {
-  updateUser?:  {
-    __typename: "User",
-    id: string,
-    Devices?:  Array< {
-      __typename: "Device",
-      id: string,
-      name: string,
-      type: string,
-      createdAt: string,
-      updatedAt: string,
-      owner?: string | null,
-    } | null > | null,
-    createdAt: string,
-    updatedAt: string,
-    owner?: string | null,
-  } | null,
-};
-
-export type DeleteUserMutationVariables = {
-  input: DeleteUserInput,
-  condition?: ModelUserConditionInput | null,
-};
-
-export type DeleteUserMutation = {
-  deleteUser?:  {
-    __typename: "User",
-    id: string,
-    Devices?:  Array< {
-      __typename: "Device",
-      id: string,
-      name: string,
-      type: string,
-      createdAt: string,
-      updatedAt: string,
-      owner?: string | null,
-    } | null > | null,
     createdAt: string,
     updatedAt: string,
     owner?: string | null,
@@ -322,6 +213,7 @@ export type GetDeviceQuery = {
   getDevice?:  {
     __typename: "Device",
     id: string,
+    deviceId: string,
     name: string,
     type: string,
     createdAt: string,
@@ -342,60 +234,9 @@ export type ListDevicesQuery = {
     items:  Array< {
       __typename: "Device",
       id: string,
+      deviceId: string,
       name: string,
       type: string,
-      createdAt: string,
-      updatedAt: string,
-      owner?: string | null,
-    } | null >,
-    nextToken?: string | null,
-  } | null,
-};
-
-export type GetUserQueryVariables = {
-  id: string,
-};
-
-export type GetUserQuery = {
-  getUser?:  {
-    __typename: "User",
-    id: string,
-    Devices?:  Array< {
-      __typename: "Device",
-      id: string,
-      name: string,
-      type: string,
-      createdAt: string,
-      updatedAt: string,
-      owner?: string | null,
-    } | null > | null,
-    createdAt: string,
-    updatedAt: string,
-    owner?: string | null,
-  } | null,
-};
-
-export type ListUsersQueryVariables = {
-  filter?: ModelUserFilterInput | null,
-  limit?: number | null,
-  nextToken?: string | null,
-};
-
-export type ListUsersQuery = {
-  listUsers?:  {
-    __typename: "ModelUserConnection",
-    items:  Array< {
-      __typename: "User",
-      id: string,
-      Devices?:  Array< {
-        __typename: "Device",
-        id: string,
-        name: string,
-        type: string,
-        createdAt: string,
-        updatedAt: string,
-        owner?: string | null,
-      } | null > | null,
       createdAt: string,
       updatedAt: string,
       owner?: string | null,
@@ -413,6 +254,7 @@ export type OnCreateDeviceSubscription = {
   onCreateDevice?:  {
     __typename: "Device",
     id: string,
+    deviceId: string,
     name: string,
     type: string,
     createdAt: string,
@@ -430,6 +272,7 @@ export type OnUpdateDeviceSubscription = {
   onUpdateDevice?:  {
     __typename: "Device",
     id: string,
+    deviceId: string,
     name: string,
     type: string,
     createdAt: string,
@@ -447,80 +290,9 @@ export type OnDeleteDeviceSubscription = {
   onDeleteDevice?:  {
     __typename: "Device",
     id: string,
+    deviceId: string,
     name: string,
     type: string,
-    createdAt: string,
-    updatedAt: string,
-    owner?: string | null,
-  } | null,
-};
-
-export type OnCreateUserSubscriptionVariables = {
-  filter?: ModelSubscriptionUserFilterInput | null,
-  owner?: string | null,
-};
-
-export type OnCreateUserSubscription = {
-  onCreateUser?:  {
-    __typename: "User",
-    id: string,
-    Devices?:  Array< {
-      __typename: "Device",
-      id: string,
-      name: string,
-      type: string,
-      createdAt: string,
-      updatedAt: string,
-      owner?: string | null,
-    } | null > | null,
-    createdAt: string,
-    updatedAt: string,
-    owner?: string | null,
-  } | null,
-};
-
-export type OnUpdateUserSubscriptionVariables = {
-  filter?: ModelSubscriptionUserFilterInput | null,
-  owner?: string | null,
-};
-
-export type OnUpdateUserSubscription = {
-  onUpdateUser?:  {
-    __typename: "User",
-    id: string,
-    Devices?:  Array< {
-      __typename: "Device",
-      id: string,
-      name: string,
-      type: string,
-      createdAt: string,
-      updatedAt: string,
-      owner?: string | null,
-    } | null > | null,
-    createdAt: string,
-    updatedAt: string,
-    owner?: string | null,
-  } | null,
-};
-
-export type OnDeleteUserSubscriptionVariables = {
-  filter?: ModelSubscriptionUserFilterInput | null,
-  owner?: string | null,
-};
-
-export type OnDeleteUserSubscription = {
-  onDeleteUser?:  {
-    __typename: "User",
-    id: string,
-    Devices?:  Array< {
-      __typename: "Device",
-      id: string,
-      name: string,
-      type: string,
-      createdAt: string,
-      updatedAt: string,
-      owner?: string | null,
-    } | null > | null,
     createdAt: string,
     updatedAt: string,
     owner?: string | null,

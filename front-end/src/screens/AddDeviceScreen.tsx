@@ -23,7 +23,7 @@ export const AddDeviceScreen = () => {
     const createNewDevice = async () => {
         await API.graphql(graphqlOperation(createDevice, {
             input: {
-                id: deviceId,
+                deviceId,
                 name,
                 type: deviceType,
             }

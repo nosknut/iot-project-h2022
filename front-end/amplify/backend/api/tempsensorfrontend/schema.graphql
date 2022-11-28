@@ -4,11 +4,7 @@ input AMPLIFY { globalAuthRule: AuthRule = { allow: public } } # FOR TESTING ONL
 
 type Device @model @auth(rules: [{ allow: owner, operations: [create, update, read, delete] }]) {
   id: ID!
+  deviceId: ID!
   name: String!
   type: String!
-}
-
-type User @model @auth(rules: [{ allow: owner, operations: [create, update, read, delete] }]) {
-  id: ID!
-  Devices: [Device]
 }

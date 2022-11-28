@@ -6,6 +6,7 @@ export const getDevice = /* GraphQL */ `
   query GetDevice($id: ID!) {
     getDevice(id: $id) {
       id
+      deviceId
       name
       type
       createdAt
@@ -23,51 +24,9 @@ export const listDevices = /* GraphQL */ `
     listDevices(filter: $filter, limit: $limit, nextToken: $nextToken) {
       items {
         id
+        deviceId
         name
         type
-        createdAt
-        updatedAt
-        owner
-      }
-      nextToken
-    }
-  }
-`;
-export const getUser = /* GraphQL */ `
-  query GetUser($id: ID!) {
-    getUser(id: $id) {
-      id
-      Devices {
-        id
-        name
-        type
-        createdAt
-        updatedAt
-        owner
-      }
-      createdAt
-      updatedAt
-      owner
-    }
-  }
-`;
-export const listUsers = /* GraphQL */ `
-  query ListUsers(
-    $filter: ModelUserFilterInput
-    $limit: Int
-    $nextToken: String
-  ) {
-    listUsers(filter: $filter, limit: $limit, nextToken: $nextToken) {
-      items {
-        id
-        Devices {
-          id
-          name
-          type
-          createdAt
-          updatedAt
-          owner
-        }
         createdAt
         updatedAt
         owner

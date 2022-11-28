@@ -9,6 +9,7 @@ export const createDevice = /* GraphQL */ `
   ) {
     createDevice(input: $input, condition: $condition) {
       id
+      deviceId
       name
       type
       createdAt
@@ -24,6 +25,7 @@ export const updateDevice = /* GraphQL */ `
   ) {
     updateDevice(input: $input, condition: $condition) {
       id
+      deviceId
       name
       type
       createdAt
@@ -39,71 +41,9 @@ export const deleteDevice = /* GraphQL */ `
   ) {
     deleteDevice(input: $input, condition: $condition) {
       id
+      deviceId
       name
       type
-      createdAt
-      updatedAt
-      owner
-    }
-  }
-`;
-export const createUser = /* GraphQL */ `
-  mutation CreateUser(
-    $input: CreateUserInput!
-    $condition: ModelUserConditionInput
-  ) {
-    createUser(input: $input, condition: $condition) {
-      id
-      Devices {
-        id
-        name
-        type
-        createdAt
-        updatedAt
-        owner
-      }
-      createdAt
-      updatedAt
-      owner
-    }
-  }
-`;
-export const updateUser = /* GraphQL */ `
-  mutation UpdateUser(
-    $input: UpdateUserInput!
-    $condition: ModelUserConditionInput
-  ) {
-    updateUser(input: $input, condition: $condition) {
-      id
-      Devices {
-        id
-        name
-        type
-        createdAt
-        updatedAt
-        owner
-      }
-      createdAt
-      updatedAt
-      owner
-    }
-  }
-`;
-export const deleteUser = /* GraphQL */ `
-  mutation DeleteUser(
-    $input: DeleteUserInput!
-    $condition: ModelUserConditionInput
-  ) {
-    deleteUser(input: $input, condition: $condition) {
-      id
-      Devices {
-        id
-        name
-        type
-        createdAt
-        updatedAt
-        owner
-      }
       createdAt
       updatedAt
       owner
