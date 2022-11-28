@@ -3,6 +3,7 @@ import { Button, FormControl, Grid, InputLabel, MenuItem, Select, TextField, Typ
 import { API, graphqlOperation } from 'aws-amplify';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createDevice } from '../graphql/mutations'
+import { v4 as uuidv4 } from 'uuid';
 
 export enum DeviceTypes {
     TEMP_SENSOR = 'TEMP_SENSOR',
@@ -21,8 +22,10 @@ export const AddDeviceScreen = () => {
     const [deviceType, setDeviceType] = useState<DeviceTypes>(DeviceTypes.TEMP_SENSOR);
 
     const createNewDevice = async () => {
+        const id = uuidv4()
         await API.graphql(graphqlOperation(createDevice, {
             input: {
+                id,
                 deviceId,
                 name,
                 type: deviceType,
