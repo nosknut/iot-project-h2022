@@ -1,8 +1,5 @@
 #include <Arduino.h>
 
-// FS.h must be importer before all other libraries.
-#include <FS.h>
-#include <SPIFFS.h>
 #include <ArduinoJson.h>
 
 #include <WIFI.h>
@@ -38,8 +35,7 @@ struct AnalogMultiplexerPinPair
   const int input;
 };
 
-const String AWS_CONFIG_PATH = "/aws-config.json";
-
+const int AWS_IOT_PORT = 8883;
 const String TOPIC = "devices/" + String(DEVICE_ID) + "/temperature";
 
 const AnalogMultiplexerPinPair LIGHT_PINS = {
@@ -95,7 +91,7 @@ Timer doorCloseDelayTimer;
 WiFiClientSecure wifiClient;
 PubSubClient pubSubClient(wifiClient);
 
-bool doorOpen;
+bool doorOpen = false;
 unsigned long tempPublishDelay = TEMP_PUBLISH_DELAY_DOOR_CLOSED;
 
 DynamicJsonDocument publishTempJsonDoc(1024);
@@ -218,13 +214,14 @@ void configurePubSub()
   wifiClient.setPrivateKey(AWS_CERT_PRIVATE);
 
   pubSubClient.setCallback(pubSubCallback);
-  pubSubClient.setServer(AWS_IOT_ENDPOINT, 8883);
+  pubSubClient.setServer(AWS_IOT_ENDPOINT, AWS_IOT_PORT);
 }
 
 void checkPubSubConnection()
 {
   while (!pubSubClient.connected())
   {
+    checkWifiConnection();
     Serial.println("Connecting to PubSub broker ...");
     if (pubSubClient.connect(DEVICE_ID))
     {
