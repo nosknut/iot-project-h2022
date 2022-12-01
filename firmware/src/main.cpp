@@ -310,8 +310,8 @@ void setup()
 
 void loop()
 {
-  checkPubSubConnection();
   checkWifiConnection();
+  checkPubSubConnection();
   updateTempPublisherDelay();
   updateTempPublisher();
 }
